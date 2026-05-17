@@ -5,7 +5,7 @@
 const IVAOAuth = (() => {
     // auth.js บรรทัด 6-7
     const CLIENT_ID = '69a4c5c9-6472-45d0-8f41-6d3f0ed4a3f1'; // ← ใช้ตัวนี้ถ้านี่คือแอปจริงบน Vercel
-    const REDIRECT_URI = window.location.origin;  // http://localhost:3000 (no trailing slash)
+    const REDIRECT_URI = window.location.origin;
     const AUTH_URL = 'https://sso.ivao.aero/authorize';
     const USER_URL = 'https://api.ivao.aero/v2/users/me';
 
@@ -47,7 +47,7 @@ const params = new URLSearchParams({
     redirect_uri: REDIRECT_URI, 
     code_challenge: challenge,
     code_challenge_method: 'S256',
-    scope: 'profile email bookings:read bookings:write'
+    scope: 'profile email'   // ← ต้องเป็นแค่นี้
 });
 
         window.location.href = `${AUTH_URL}?${params.toString()}`;
@@ -206,6 +206,14 @@ const params = new URLSearchParams({
     }
 
     // ── Public API ─────────────────────────────────────────────
+    const ALLOWED_DIVISIONS = ['TH', 'XE', 'IN'];
+
+    function isStaffAllowed() {
+        if (!currentUser) return false;
+        const div = (currentUser.division || '').toUpperCase();
+        return ALLOWED_DIVISIONS.includes(div);
+    }
+
     return {
         login,
         logout,
@@ -213,6 +221,7 @@ const params = new URLSearchParams({
         getUser: () => currentUser,
         isLoggedIn: () => !!currentUser,
         isAdmin: () => currentUser?.isAdmin || false,
+        isStaffAllowed,
         getToken: () => localStorage.getItem('ivao_token')
     };
 })();
