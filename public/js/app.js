@@ -135,8 +135,12 @@ const App = (() => {
                     actionHtml = `<button class="btn btn-danger btn-sm" onclick="App.unbookSlot('${event.id}',${i})">
                         <i data-lucide="x"></i> Cancel</button>`;
                 } else if (!isBooked) {
-                    actionHtml = `<button class="btn btn-success btn-sm" onclick="App.bookSlot('${event.id}',${i})">
-                        <i data-lucide="check"></i> Book</button>`;
+                    if (IVAOAuth.isStaffAllowed()) {
+                        actionHtml = `<button class="btn btn-success btn-sm" onclick="App.bookSlot('${event.id}',${i})">
+                            <i data-lucide="check"></i> Book</button>`;
+                    } else {
+                        actionHtml = '<span class="text-muted" style="font-size:.78rem;" title="Only TH / XE / IN staff can book">Staff only</span>';
+                    }
                 }
             } else if (!isBooked) {
                 actionHtml = '<span class="text-muted" style="font-size:.78rem;">Login to book</span>';
@@ -554,17 +558,50 @@ const App = (() => {
             }
         }
 
-        const formHtml = `
+        const formHtml = user ? `
+            <div class="form-card section-gap">
+                <div class="form-card-title"><i data-lucide="plus-circle"></i> Create ATC Booking</div>
+                <form id="atc-booking-form" onsubmit="App.submitATCBooking(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">ATC Position (Callsign) <span class="required">*</span></label>
+                            <input type="text" class="form-input font-mono" name="atcCallsign" required
+                                placeholder="e.g. VTBS_TWR" style="text-transform:uppercase;">
+                            <span class="form-hint">ICAO format — e.g. VTBD_GND, VTBS_APP</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Booking Type</label>
+                            <select class="form-input" name="type">
+                                <option value="standard">Standard</option>
+                                <option value="training">Training</option>
+                                <option value="exam">Examination</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Start Date/Time (UTC) <span class="required">*</span></label>
+                            <input type="datetime-local" class="form-input" name="start" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Date/Time (UTC) <span class="required">*</span></label>
+                            <input type="datetime-local" class="form-input" name="end" required>
+                        </div>
+                    </div>
+                    <div style="margin-top:16px;display:flex;justify-content:flex-end;">
+                        <button type="submit" class="btn btn-primary">
+                            <i data-lucide="radio-tower"></i> Book Position
+                        </button>
+                    </div>
+                </form>
+            </div>` : `
             <div class="detail-card section-gap" style="text-align:center;padding:48px 24px;">
-                <i data-lucide="external-link" style="width:40px;height:40px;color:var(--ivao-accent);margin:0 auto 14px;display:block;"></i>
-                <h3 style="margin-bottom:8px;">Book ATC Position</h3>
-                <p style="color:var(--text-muted);font-size:.9rem;margin-bottom:24px;line-height:1.6;">
-                    ATC bookings are managed directly on the official IVAO ATC Service Center.<br>
-                    Click the button below to open and manage your bookings.
+                <i data-lucide="lock" style="width:40px;height:40px;color:var(--text-muted);margin:0 auto 14px;display:block;"></i>
+                <h3 style="margin-bottom:6px;">Login Required</h3>
+                <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:18px;">
+                    You need to log in with your IVAO account to manage ATC bookings.
                 </p>
-                <a href="https://atc.ivao.aero" target="_blank" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;">
-                    <i data-lucide="radio-tower"></i> Open ATC Service Center
-                </a>
+                <button class="btn btn-primary" onclick="IVAOAuth.login()">
+                    <i data-lucide="log-in"></i> Login with IVAO
+                </button>
             </div>`;
 
         return `
